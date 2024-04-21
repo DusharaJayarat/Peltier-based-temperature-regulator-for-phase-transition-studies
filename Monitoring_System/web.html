@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Temperature Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+   
+    </script>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #fff; 
+    margin: 0; 
+    padding: 0; 
+}
+        
+        
+        table {
+            margin: 5px;
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 5px; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+        }
+
+        
+        td {
+           
+            padding: 10px;
+            text-align: center;
+           
+         }
+            
+
+        
+        #datetime {
+            background-color: #007bff; 
+            color: #fff; 
+            padding: 10px;
+            border-radius: 5px; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body>
+   
+
+
+    <table style="margin: 5px;", width = 100%>
+        <tr>
+    
+    <td>
+    <div id="RoomTemperature" style="background-color: #ffffff; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 20px; margin: 20px auto; max-width: 400px; text-align: center;">
+        <h2 style="color: #333; margin-bottom: 10px;">Room<br>Temperature</h2>
+        <p id="temperature" style="font-size: 24px; font-weight: bold; color: #007bff; text-align: center; margin: 0;">Temperature Value</p>
+    </div> </td>
+    <td >
+        <p id="datetime",  align_item = "center"></p>
+    </td>
+
+    <td>
+    <div id="RoomPressure" style="background-color: #ffffff; border-radius:5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 20px; margin: 20px auto; max-width: 400px; text-align: center;">
+        <h2 style="color: #333; margin-bottom: 10px;">Room<br>Pressure</h2>
+        <p id="pressure" style="font-size: 24px; font-weight: bold; color: #007bff; text-align: center; margin: 0;">Pressure Value</p>
+    </div>
+    </td>
+        </tr>
+</table>
+
+
+    <canvas id="temperatureChart" width="300" height="100"></canvas>
+   
+    <form method="post" style="margin-top: 20px; text-align: center;">
+        <label for="setvalue" style="font-weight: bold; margin-right: 10px;">Set Value:</label>
+        <input type="number" id="setvalue" name="setvalue" value="{{ setvalue }}" step="0.1" style="padding: 5px; border-radius: 3px; border: 1px solid #ccc; margin-right: 10px;">
+        <input id="submitBtn" type="submit" value="Update Set Value" style="padding: 8px 15px; background-color: #007bff; color: #fff; border: none; border-radius: 3px; cursor: pointer;">
+    </form>
+    <table>
+        <tr>
+            <td>
+                <button id="downloadButton">Download Graph</button>
+            </td>
+            <td>
+                <a href="http://localhost/thermistor/web4.html"><button>Previous Graph</button></a>
+            </td>
+        </tr>
+    </table>
+    
+    
+    
+    <script>
+        
+document.getElementById('submitBtn').addEventListener('click', function(event) {
+    event.preventDefault(); 
+    setInterval(updateChart,50)
+});
+
+
+
+var ctx = document.getElementById('temperatureChart').getContext('2d');
+var temperatureChart = new Chart(ctx, {
+    type: 'line',
+data: {
+    labels: [],
+    datasets: [{
+        pointRadius: 0, 
+        label: 'Temperature',
+        data: [],
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(255, 99, 132, 1)', 
+        pointBorderColor: '#fff', 
+        pointHoverRadius: 6, 
+        pointHoverBackgroundColor: 'rgba(255, 99, 132, 1)',
+        pointHoverBorderColor: 'rgba(255, 99, 132, 1)', 
+    }]
+},
+    options: {
+        plugins: {
+            title: {
+                display: true,
+                text: 'Temperature Trend', 
+                font: {
+                    size: 18,
+                    weight: 'bold'
+                }
+            },
+            legend: {
+                display: true,
+                labels: {
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            zoom: {
+                pan: {
+                    enabled: true,
+                    mode: 'x'
+                },
+                zoom: {
+                    enabled: true,
+                    mode: 'x',
+                    drag: true,
+                    wheel: {
+                        enabled: true
+                    },
+                    pinch: {
+                        enabled: true
+                    },
+                    limits: {
+                        max: 10,
+                        min: 0.5
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                color: 'rgba(0, 0, 0, 0.1)' 
+            },
+            ticks: {
+                color: 'black' 
+            },
+                title: {
+                    display: true,
+                    text: 'Time(HH.MM.SS)',
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            y: {
+                grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+               color: 'black',
+                //  stepSize: 0.5, 
+                //  beginAtZero: true,
+                //  precision:  1 
+            },
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Temperature (°C)',
+                    font: {
+                        size: 14
+                    }
+                }
+            }
+        },
+        interaction: {
+            mode: 'nearest',
+            intersect: false,
+            axis: 'x'
+        },
+        tooltips: {
+            mode: 'index',
+            intersect: false,
+            bodySpacing: 6,
+            titleFont: {
+                size: 14,
+                weight: 'bold'
+            },
+            bodyFont: {
+                size: 12
+            }
+        },
+        hover: {
+            mode: 'nearest',
+            intersect: true
+        }
+    }
+});
+
+
+chart.options.plugins.zoom.zoom.enabled = !chart.tooltip.active;
+chart.options.plugins.zoom.pan.enabled = !chart.tooltip.active;
+
+ function updateChart() {
+    
+    var setvalue = document.getElementById('setvalue').value;
+
+
+fetch('getTemperatureData.php')
+        .then(response => response.json())
+        .then(data => {
+            
+            var firstTemp = Math.floor(data[0].temperature);
+
+            temperatureChart.data.labels = [];
+            temperatureChart.data.datasets[0].data = [];
+
+           
+let previousTemperature = null;
+
+for (var i = 0; i < data.length; i++) {
+    var item = data[i];
+
+    
+    if (item.temperature > setvalue) {
+        break;
+    }
+
+    
+    if (previousTemperature !== null) {
+       
+        if (Math.abs(item.temperature - previousTemperature) <= 2) {
+           
+            if (item.temperature >= previousTemperature - 2 && item.temperature <= previousTemperature + 2) {
+                
+                temperatureChart.data.labels.push(item.time);
+                temperatureChart.data.datasets[0].data.push(item.temperature);
+            } else {
+                console.log("Temperature data exceeds the acceptable range of +/- 2 degrees from the previous value. Skipping...");
+            }
+        } else {
+            console.log("Temperature data differs by more than 2 degrees from the previous value. Skipping...");
+        }
+    } else {
+        
+        temperatureChart.data.labels.push(item.time);
+        temperatureChart.data.datasets[0].data.push(item.temperature);
+    }
+
+    
+    previousTemperature = item.temperature;
+}
+
+
+            
+            if (!temperatureChart.options.scales) {
+                temperatureChart.options.scales = { y: { min: firstTemp -10, max: setvalue } };
+            } else if (!temperatureChart.options.scales.y) {
+                temperatureChart.options.scales.y = { min: firstTemp - 10 , max: setvalue };
+            } else {
+                temperatureChart.options.scales.y.min = firstTemp - 10;
+                temperatureChart.options.scales.y.max = Math.floor(setvalue);
+            }
+
+            temperatureChart.update();
+        });
+}
+updateChart(); 
+setInterval(updateChart, 0); 
+
+
+
+</script>
+
+<script>
+    function downloadGraph() {
+    var canvas = document.getElementById('temperatureChart');
+    
+    var url = canvas.toDataURL('image/png');
+    var link = document.createElement('a');
+    link.download = 'temperature_chart.png';
+    link.href = url;
+    link.click();
+}
+
+
+document.getElementById('downloadButton').addEventListener('click', function() {
+    downloadGraph();
+});
+
+
+</script>
+
+
+<script>
+
+function updateDateTime() {
+  var now = new Date();
+  var datetime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
+  document.getElementById("datetime").innerHTML = datetime;
+}
+
+
+setInterval(updateDateTime, 1000);
+
+function fetchData() {
+            fetch('TP.php')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('RoomTemperature').innerText = 'RoomTemperature: ' + data.RoomTemperature + '°C';
+                document.getElementById('RoomPressure').innerText = 'RoomPressure: ' + data.RoomPressure+ 'Pa';
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+
+        
+        window.onload = function() {
+            fetchData();
+            
+            setInterval(fetchData, 0);
+        };
+
+
+
+
+
+
+</script>
+
+
+</body>
+</html>
